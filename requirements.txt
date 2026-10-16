@@ -1,0 +1,9 @@
+sentence-transformers
+rank_bm25
+chromadb
+fastapi
+uvicorn
+streamlit
+pandas
+python-docx
+requests

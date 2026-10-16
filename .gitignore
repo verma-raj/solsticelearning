@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+data/chroma/*
+!data/chroma/.gitkeep
+~$*
+api
+data
+data
+eval
+src
+tests
+ui
+check_setup.py
