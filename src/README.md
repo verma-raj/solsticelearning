@@ -43,10 +43,10 @@ Health check: http://localhost:8000/health
 ## How the gate decides
 
 The top document is accepted only if **both** hold:
-1. cosine similarity >= `COS_MIN` (0.64), and
+1. cosine similarity >= `COS_MIN` (0.70), and
 2. normalised BM25 >= `BM25_MIN` (0.20) **or** at least `MIN_OVERLAP_TERMS` (3) meaningful query words
    appear in the document (stopwords and words found in over half of all documents are ignored).
 
-Current results on the 40 eval questions: false-found 0/10 (group 3), miss rate 6/20 (groups 1-2),
+Current results on the 40 eval questions: false-found 0/10 (group 3), miss rate 19/20 (groups 1-2; was 6/20 at COS_MIN 0.64),
 top-1 / top-3 retrieval hit rate 75% / 90%. These thresholds were tuned on the same 40 questions,
 so treat them as a starting point and re-run `sweep_threshold.py` after adding documents or questions.

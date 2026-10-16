@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 
 import config
 from retrieval import Retriever, get_retriever
-from textutils import content_terms
+from textutils import content_terms, stem, tokenize
 
 
 @dataclass
@@ -35,7 +35,16 @@ def meaningful_terms(query: str, retriever: Retriever) -> list[str]:
     return [t for t in terms if retriever.doc_freq.get(t, 0) / n_docs <= config.COMMON_TERM_MAX_DOC_RATIO]
 
 
-def _check(doc: dict, terms: list[str], cos_min: float, bm25_min: float, retriever: Retriever) -> tuple[bool, str, dict]:
+_PLATFORMS = {stem(p) for p in config.PLATFORM_TERMS}  # stemmed like the tokens they are compared with
+
+
+def missing_platforms(query: str, doc_id: str, retriever: Retriever) -> list[str]:
+    """Platforms named in the query that the document never mentions (for example "linux")."""
+    doc_words = retriever.doc_terms.get(doc_id, set())
+    return [t for t in dict.fromkeys(tokenize(query)) if t in _PLATFORMS and t not in doc_words]
+
+
+def _check(doc: dict, terms: list[str], query: str, cos_min: float, bm25_min: float, retriever: Retriever) -> tuple[bool, str, dict]:
     """Apply both checks to one document and explain the result."""
     overlap = [t for t in terms if t in retriever.doc_terms.get(doc["doc_id"], set())]
     scores = {
@@ -44,9 +53,12 @@ def _check(doc: dict, terms: list[str], cos_min: float, bm25_min: float, retriev
         "bm25": doc["bm25_score"],
         "overlap_terms": overlap,
     }
+    absent = missing_platforms(query, doc["doc_id"], retriever)
     semantic_ok = doc["cosine_similarity"] >= cos_min
     lexical_ok = doc["bm25_score"] >= bm25_min or len(overlap) >= config.MIN_OVERLAP_TERMS
 
+    if absent:
+        return False, f"the query mentions '{', '.join(absent)}' but the document never does", scores
     if not semantic_ok:
         why = f"cosine {doc['cosine_similarity']:.3f} is below the minimum {cos_min:.2f}"
     elif not lexical_ok:
@@ -79,13 +91,13 @@ def decide(
         return GateDecision(False, "No candidate documents were retrieved for this query.")
 
     terms = meaningful_terms(query, retriever)
-    top_ok, top_why, top_scores = _check(results[0], terms, cos_min, bm25_min, retriever)
+    top_ok, top_why, top_scores = _check(results[0], terms, query, cos_min, bm25_min, retriever)
     if not top_ok:
         return GateDecision(False, f"NOT FOUND - top document {results[0]['doc_id']}: {top_why}.", top_scores)
 
     accepted = [results[0]]
     for doc in results[1:]:
-        ok, _, _ = _check(doc, terms, cos_min, bm25_min, retriever)
+        ok, _, _ = _check(doc, terms, query, cos_min, bm25_min, retriever)
         if ok:
             accepted.append(doc)
     return GateDecision(True, f"FOUND - top document {results[0]['doc_id']}: {top_why}.", top_scores, accepted)

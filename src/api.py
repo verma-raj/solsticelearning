@@ -86,17 +86,16 @@ SEARCH_PAGE = """<!DOCTYPE html>
       card.appendChild(el("div", "excerpt", r.excerpt));
       const link = el("a", "open", "Open document");
       link.href = r.link;          // always /doc/<known id>, built by the server
-      link.target = "_blank";
-      link.rel = "noopener";
       card.appendChild(link);
       box.appendChild(card);
     }
   }
 
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const q = input.value.trim();
+  // Runs one search. The query is also kept in the page address (?q=...), so when the user
+  // opens a document and comes back, the page can run the same search again.
+  async function runSearch(q) {
     if (!q) { showMessage("none", "Please type a question or some keywords."); return; }
+    history.replaceState(null, "", "/?q=" + encodeURIComponent(q));
     button.disabled = true;
     showMessage("none", "Searching...");
     try {
@@ -114,7 +113,19 @@ SEARCH_PAGE = """<!DOCTYPE html>
     } finally {
       button.disabled = false;
     }
+  }
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    runSearch(input.value.trim());
   });
+
+  // On load (including coming back from a document), restore the last search if there is one.
+  const savedQuery = new URLSearchParams(location.search).get("q");
+  if (savedQuery) {
+    input.value = savedQuery;
+    runSearch(savedQuery.trim());
+  }
 </script>
 </body>
 </html>
@@ -139,7 +150,7 @@ DOC_PAGE = """<!DOCTYPE html>
 </head>
 <body>
 <main>
-  <p><a href="/">&larr; Back to search</a></p>
+  <p><a href="/" onclick="if (document.referrer.indexOf(location.origin) === 0 &amp;&amp; history.length > 1) {{ history.back(); return false; }}">&larr; Back to search</a></p>
   <article>
     <p class="meta">{doc_id} &middot; last updated {updated}</p>
     {body}

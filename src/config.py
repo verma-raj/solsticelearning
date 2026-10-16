@@ -50,15 +50,25 @@ BM25_K1 = 1.5
 BM25_B = 0.75
 
 # ----------------------------------------------------------------- gate ----
-# "Found / not found" thresholds, chosen with sweep_threshold.py on the 40 eval questions.
+# "Found / not found" thresholds. COS_MIN is 0.70 by request (sweep_threshold.py suggested 0.64
+# on the 40 eval questions; 0.90 was tried and rejected 19 of 20 answerable questions).
 # A wrong document is worse than "No document available", so we sit on the plateau where
 # no not-covered question gets through. Cosine alone could not do this: questions about
 # uncovered features of the SAME product score 0.62-0.77, overlapping genuinely covered
 # paraphrases (0.65-0.85), so a second, lexical signal has to agree.
-COS_MIN = 0.64          # top document's cosine similarity must be at least this...
+COS_MIN = 0.70          # top document's cosine similarity must be at least this...
 BM25_MIN = 0.20         # ...AND either its normalised BM25 score is at least this...
 MIN_OVERLAP_TERMS = 3   # ...OR at least this many meaningful query words appear in the document.
                         # (1 lets generic words like "support" or "report" wave wrong documents through.)
+
+# Platforms and operating systems. If the query names one, the document must mention it too.
+# Why: "reset my Linux password" is semantically close to every password document, and the
+# matching words (reset, password) hide the fact that the one specific thing asked about
+# (Linux) is not documented anywhere. Add any platform your product docs do or do not cover.
+PLATFORM_TERMS = {
+    "windows", "linux", "ubuntu", "debian", "fedora", "unix", "mac", "macos", "osx",
+    "android", "ios", "iphone", "ipad", "chromebook",
+}
 
 # A query word that appears in more than this share of all documents (for example
 # "solstice") says nothing about which document is right, so it is not "meaningful".
