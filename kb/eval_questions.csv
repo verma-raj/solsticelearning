@@ -1,0 +1,41 @@
+id,group,question,expected_behavior,expected_docs,key_facts_or_reason
+Q01,1_clear,What are the password requirements for Solstice?,ANSWER,PWD-02,"12+ chars; upper, lower, number, symbol; not last 5 passwords"
+Q02,1_clear,How long is the password reset link valid?,ANSWER,PWD-01,30 minutes; single use
+Q03,1_clear,"How many failed sign-in attempts lock an account, and for how long?",ANSWER,PWD-05,5 attempts; 15 minutes
+Q04,1_clear,How does an admin reset a learner's password?,ANSWER,PWD-03,Admin Console > Users > select learner > Actions > Send password reset email; User Admin role
+Q05,1_clear,What is the maximum number of rows in an instant CSV export?,ANSWER,EXP-02,"50,000"
+Q06,1_clear,How long are bulk export download links valid?,ANSWER,EXP-03,7 days
+Q07,1_clear,When am I billed on a monthly plan?,ANSWER,BIL-01,Same day each month as purchase date; last day if the day doesn't exist
+Q08,1_clear,What happens when a subscription payment fails?,ANSWER,BIL-06,"Retries day 3,5,7; read-only day 10; suspended day 30; data kept 90 days"
+Q09,1_clear,What is the minimum number of seats for the Business plan?,ANSWER,PUR-01,25
+Q10,1_clear,How long does the free trial last?,ANSWER,PUR-03,"14 days, no card, up to 10 seats"
+Q11,2_paraphrased_vague,I forgot my login and can't get into Solstice. How do I get back in?,ANSWER,PWD-01,"Forgot password link; emailed reset link, 30 min"
+Q12,2_paraphrased_vague,I changed my password but the Solstice app on my Windows laptop keeps trying the old one.,ANSWER,PWD-04,Remove SolsticeDesktop entry in Windows Credential Manager; restart app
+Q13,2_paraphrased_vague,I asked for a password change email ages ago and nothing came.,ANSWER,"PWD-08, PWD-01","Wait 5 min, check spam, correct email, allow-list domain, max 3/hour"
+Q14,2_paraphrased_vague,My spreadsheet download keeps getting cut off halfway. Why?,ANSWER,"EXP-02, EXP-10",Instant export row limit exceeded; narrow filters or use bulk export
+Q15,2_paraphrased_vague,Can I pull a really huge report out of the platform?,ANSWER,"EXP-03, EXP-08","Bulk export up to 1,000,000 rows CSV (5,000,000 on Enterprise)"
+Q16,2_paraphrased_vague,When does my card get hit each month?,ANSWER,"BIL-01, BIL-10",On the purchase-date anniversary each month
+Q17,2_paraphrased_vague,We hired 20 more people mid-month. How will that show up on our bill?,ANSWER,BIL-03,"New seats charged immediately, prorated daily for remainder of cycle"
+Q18,2_paraphrased_vague,How do I get a bill I can hand to our accounting team?,ANSWER,BIL-07,"Admin Console > Billing > Invoices, PDF; emailed to billing contacts"
+Q19,2_paraphrased_vague,How do I sign my company up for the Business plan?,ANSWER,"PUR-04, PUR-05",Online by Account Owner/Billing Admin steps; or quote/PO via Sales
+Q20,2_paraphrased_vague,Is there a discount if we're buying a lot of seats?,ANSWER,PUR-09,Volume discounts for 500+ seats via Sales
+Q21,3_not_covered,Does Solstice support passwordless sign-in with FIDO2 security keys?,ABSTAIN,,"Not documented (only password, MFA, SSO, Windows Hello unlock)"
+Q22,3_not_covered,Can I connect Solstice reports directly to Power BI or Tableau?,ABSTAIN,,"Not documented (only manual exports, scheduled exports, API)"
+Q23,3_not_covered,What is the maximum video file size I can upload to a course?,ABSTAIN,,Out of scope of the doc set
+Q24,3_not_covered,Do you offer a discount for nonprofits or schools?,ABSTAIN,,Only promo codes and 500+ seat volume discounts documented
+Q25,3_not_covered,Can I buy Solstice through the AWS Marketplace?,ABSTAIN,,Not documented
+Q26,3_not_covered,How do I upload a tax exemption certificate?,ABSTAIN,,"Only tax ID entry documented (BIL-08), not exemption certificates"
+Q27,3_not_covered,What uptime SLA does Solstice guarantee?,ABSTAIN,,Not documented
+Q28,3_not_covered,How do I export SCORM packages from a course I authored?,ABSTAIN,,Not documented
+Q29,3_not_covered,What's the phone number for the sales team?,ABSTAIN,,Not documented
+Q30,3_not_covered,Does Solstice support automatic user provisioning from Workday?,ABSTAIN,,Not documented
+Q31,4_ambiguous,How do I reset my Windows password?,PARTIAL / OUT-OF-SCOPE,PWD-10,Solstice doesn't manage Windows sign-in passwords; contact IT/Microsoft. Must NOT give Solstice reset steps as if they fix Windows login
+Q32,4_ambiguous,Can I reset my password on a Mac?,PARTIAL,"PWD-01 (web), PWD-04",Web reset works from any browser; documented desktop client is Windows only; no Mac client guidance
+Q33,4_ambiguous,What is the export limit?,CLARIFY or LIST,"EXP-02, EXP-03, EXP-04, EXP-07",Depends on mode and format: instant CSV 50k / XLSX 25k / PDF 5k; bulk 1M; API etc.
+Q34,4_ambiguous,Can I export more than 1 million rows?,PARTIAL,"EXP-03, EXP-08",Standard bulk cap 1M; Enterprise 5M; plan-dependent
+Q35,4_ambiguous,Can I get a refund?,CLARIFY or CONDITIONAL,"BIL-09, BIL-03",Depends: monthly none; annual first purchase within 14 days; seat reductions never
+Q36,4_ambiguous,Can I pay with PayPal?,PARTIAL,BIL-05,"Docs list cards, ACH (annual, US), PO/invoice; PayPal not mentioned - must not claim it is or isn't supported"
+Q37,4_ambiguous,How much does Solstice cost?,CLARIFY or LIST,PUR-02,"Depends on plan, cycle and seats; Enterprise custom quote"
+Q38,4_ambiguous,How do I change my billing date?,ABSTAIN or PARTIAL,BIL-01,Billing date = purchase anniversary; no documented way to change it
+Q39,4_ambiguous,Can I extend my free trial?,ABSTAIN or PARTIAL,PUR-03,Trial is 14 days; no documented extension process
+Q40,4_ambiguous,Can I reset passwords in bulk for all my learners at once?,ABSTAIN or PARTIAL,PWD-03,Only per-user reset is documented; bulk reset not documented

@@ -1,0 +1,41 @@
+doc_id,file,title,topic,doc_style
+PWD-01,PWD-01_reset-your-password.md,Reset your Solstice password (self-service),password-reset,official
+PWD-02,PWD-02_password-requirements.md,Password requirements,password-reset,official
+PWD-03,PWD-03_admin-reset-learner-password.md,How an admin resets a learner's password,password-reset,official
+PWD-04,PWD-04_windows-desktop-password-reset.md,Resetting your password in Solstice Desktop for Windows,password-reset,official
+PWD-05,PWD-05_account-lockout.md,Account lockout after failed sign-ins,password-reset,official
+PWD-06,PWD-06_sso-password-management.md,Passwords for single sign-on (SSO) users,password-reset,official
+PWD-07,PWD-07_mfa-and-password-reset.md,Multi-factor authentication and password resets,password-reset,official
+PWD-08,PWD-08_reset-email-not-arriving.md,Help! My password reset email never showed up,password-reset,informal
+PWD-09,PWD-09_sessions-after-reset.md,What happens to my signed-in sessions after a reset?,password-reset,official
+PWD-10,PWD-10_windows-login-password-scope.md,Windows sign-in passwords: what Solstice does and doesn't manage,password-reset,adjacent
+EXP-01,EXP-01_exports-overview.md,Exporting data: overview,data-export-limits,official
+EXP-02,EXP-02_row-limits-by-format.md,Row limits by format (instant exports),data-export-limits,official
+EXP-03,EXP-03_bulk-exports.md,Bulk exports for large data sets,data-export-limits,official
+EXP-04,EXP-04_export-rate-limits.md,Export frequency limits,data-export-limits,official
+EXP-05,EXP-05_date-range-and-data-scope.md,Date range limits for exports,data-export-limits,official
+EXP-06,EXP-06_scheduled-exports.md,Scheduled exports,data-export-limits,official
+EXP-07,EXP-07_api-export-limits.md,Exporting data through the API,data-export-limits,official
+EXP-08,EXP-08_enterprise-export-limits.md,Higher export limits on the Enterprise plan,data-export-limits,official
+EXP-09,EXP-09_personal-data-in-exports.md,Personal data in exports,data-export-limits,official
+EXP-10,EXP-10_export-troubleshooting.md,Export troubleshooting tips,data-export-limits,informal
+BIL-01,BIL-01_billing-cycles-overview.md,Billing cycles: overview,billing-cycles,official
+BIL-02,BIL-02_annual-billing-and-renewal.md,Annual billing and renewal,billing-cycles,official
+BIL-03,BIL-03_seat-changes-and-proration.md,Adding or removing seats mid-cycle,billing-cycles,official
+BIL-04,BIL-04_switching-billing-cycles.md,Switching between monthly and annual billing,billing-cycles,official
+BIL-05,BIL-05_payment-methods.md,Accepted payment methods,billing-cycles,official
+BIL-06,BIL-06_failed-payments.md,What happens if a payment fails,billing-cycles,official
+BIL-07,BIL-07_invoices-and-billing-contacts.md,"Invoices, receipts and billing contacts",billing-cycles,official
+BIL-08,BIL-08_taxes-and-currency.md,Taxes and currency,billing-cycles,official
+BIL-09,BIL-09_cancellation-and-refunds.md,Cancellation and refunds,billing-cycles,official
+BIL-10,BIL-10_billing-faq.md,Billing FAQ: quick answers,billing-cycles,informal
+PUR-01,PUR-01_plans-overview.md,Solstice plans overview,purchase-process,official
+PUR-02,PUR-02_pricing.md,List pricing,purchase-process,official
+PUR-03,PUR-03_free-trial.md,Free trial,purchase-process,official
+PUR-04,PUR-04_buy-online-step-by-step.md,How to purchase a subscription online,purchase-process,official
+PUR-05,PUR-05_purchase-orders-and-quotes.md,Buying with a sales quote or purchase order,purchase-process,official
+PUR-06,PUR-06_who-can-purchase.md,Who is allowed to purchase?,purchase-process,official
+PUR-07,PUR-07_add-ons.md,Add-ons,purchase-process,official
+PUR-08,PUR-08_upgrade-or-change-plan.md,Upgrading or changing your plan,purchase-process,official
+PUR-09,PUR-09_promo-codes-and-discounts.md,Promo codes and volume discounts,purchase-process,official
+PUR-10,PUR-10_after-you-purchase.md,What happens after you buy,purchase-process,informal
