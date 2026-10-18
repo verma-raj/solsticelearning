@@ -66,7 +66,10 @@ python -m venv .venv
 </table>
 
 <p>Stop the running application:</p>
-<pre><code>Get-NetTCPConnection -LocalPort 8000 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { $p = Get-CimInstance Win32_Process -Filter "ProcessId=$($_.OwningProcess)"; "PID $($_.OwningProcess): $($p.CommandLine)" }</code></pre>
+<pre><code>Get-CimInstance Win32_Process -Filter "Name like 'python%'" | Where-Object { $_.CommandLine -like '*uvicorn*' -or $_.CommandLine -like '*multiprocessing.spawn*' } | ForEach-Object { "stopping PID $($_.ProcessId)"; Stop-Process -Id $_.ProcessId -Force }
+Start-Sleep -Seconds 2
+"listeners on 8000: " + (@(Get-NetTCPConnection -LocalPort 8000 -State Listen -ErrorAction SilentlyContinue)).Count
+try { (Invoke-WebRequest http://localhost:8000/health -UseBasicParsing -TimeoutSec 5).Content } catch { "health check failed (server is down)" }</code></pre>
 
 <hr>
 
