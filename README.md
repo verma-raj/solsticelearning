@@ -65,6 +65,9 @@ python -m venv .venv
   </tbody>
 </table>
 
+<p>Stop the running application:</p>
+<pre><code>Get-NetTCPConnection -LocalPort 8000 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { $p = Get-CimInstance Win32_Process -Filter "ProcessId=$($_.OwningProcess)"; "PID $($_.OwningProcess): $($p.CommandLine)" }</code></pre>
+
 <hr>
 
 <h3>Setup checklist</h3>
