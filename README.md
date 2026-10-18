@@ -1,85 +1,84 @@
-# solsticelearning 
+<h1 align="center">Solstice Learning: Document Finder</h1>
+<p align="center"><em>One-time technical setup</em></p>
 
-This is case study for FDE assignment
-------------------------------
+<hr>
 
-=========================
-Forward Deployed Engineer 
-==========================
-
-CASE STUDY
------------------------------------------
-
-SOLSTICE LEARNING
-
-Sells an online- course platform to corporate training a documentation site admins rarely search successfully.
-
-“ New admins ask us the same handful of questions over and over — password resets, export limits, billing cycles — and it’ s all 
-already in our docs, they just don’t want to dig through pages to find it. I want some thing where an admin can type a plain -English 
-question and get a real answer pulled from our documentation. The one thing I really care about: if the docs genuinely don’t cover something, 
-I’d much rather it say ‘I don’t have an answer for that’ than make something up.”
-
-THE ASK  IS  DELIBERATELY
---------------------------------------------- 
-You decide — and document — how to 
-across documents for the right passage, 
-confident an answer must be before 
-rather than saying you don’ t know, and 
-to use an LLM at all.
-
-
-WHAT WE ARE EVALUATING
---------------------------------------------
-• Handling ambiguity
-• Soundness of design judgment
-• Building under real constraints
-• Clarity of your reasoning
-• Response when challenged
-
-******************************************************************************************************************
-******************************************************************************************************************
-
-
-<!-- ===================== Technical stack (added) ===================== -->
-<h2>Document finder: technical stack</h2>
-<p>A fully local search app over the Solstice help documents. No LLM is used at query time and nothing is generated: every word shown is copied from a stored document.</p>
-
-<h3>Tech layers</h3>
-<table border="1" cellpadding="6" cellspacing="0">
+<h2>1. Setup requirements</h2>
+<table>
   <thead>
-    <tr><th>#</th><th>Layer</th><th>What it does</th><th>Technology</th><th>Files</th></tr>
+    <tr><th>Component</th><th>Version</th></tr>
   </thead>
   <tbody>
-    <tr><td>1</td><td>Data</td><td>40 Markdown help docs with a front-matter header, plus the evaluation questions</td><td>Markdown, CSV</td><td><code>kb/docs</code>, <code>kb/eval_questions.csv</code></td></tr>
-    <tr><td>2</td><td>Ingestion</td><td>Parses each document, splits it into chunks by heading, builds every index</td><td>Python, <code>re</code>, <code>json</code></td><td><code>src/ingest.py</code></td></tr>
-    <tr><td>3</td><td>Embedding</td><td>Turns text into 768-number vectors (document and query prefixes, L2-normalised)</td><td>Ollama + nomic-embed-text, <code>requests</code>, <code>numpy</code></td><td><code>src/embedder.py</code></td></tr>
-    <tr><td>4</td><td>Storage</td><td>Persists vectors, chunks and documents; BM25 is rebuilt in memory at start-up</td><td>ChromaDB, NumPy <code>.npy</code>, JSON</td><td><code>index/</code></td></tr>
-    <tr><td>5</td><td>Retrieval</td><td>Keyword search (BM25) and vector search merged with Reciprocal Rank Fusion, one result per document</td><td><code>rank_bm25</code>, ChromaDB, <code>numpy</code></td><td><code>src/retrieval.py</code>, <code>src/textutils.py</code></td></tr>
-    <tr><td>6</td><td>Decision gate</td><td>Returns "No document available" unless cosine similarity and a lexical check both pass</td><td>Python rules and thresholds</td><td><code>src/gate.py</code></td></tr>
-    <tr><td>7</td><td>API and UI</td><td>Search page, JSON search, full-document pages, health check</td><td>FastAPI, Uvicorn, <code>markdown</code>, HTML/CSS/JavaScript</td><td><code>src/api.py</code></td></tr>
-    <tr><td>8</td><td>Evaluation</td><td>Scores the finder per question group and sweeps the threshold</td><td><code>pandas</code>, <code>numpy</code></td><td><code>src/evaluate.py</code>, <code>src/sweep_threshold.py</code></td></tr>
-    <tr><td>9</td><td>Configuration</td><td>Paths, model name, chunk size and all thresholds in one place</td><td>Python, <code>pathlib</code></td><td><code>src/config.py</code></td></tr>
+    <tr><td>VS Code</td><td>1.142.0</td></tr>
+    <tr><td>Python</td><td>3.14.6</td></tr>
+    <tr><td>Operating system</td><td>Windows 11</td></tr>
+    <tr><td>Shell</td><td>PowerShell</td></tr>
   </tbody>
 </table>
 
-<h3>Packages</h3>
-<table border="1" cellpadding="6" cellspacing="0">
+<h2>2. Create and activate the virtual environment</h2>
+<p>Run these in PowerShell, from the project folder:</p>
+<pre><code>python --version
+python -m pip install --upgrade pip
+python -m venv .venv
+.venv\Scripts\Activate.ps1</code></pre>
+
+<blockquote>
+  <p><strong>If you get this error:</strong> <code>Activate.ps1 cannot be loaded because running scripts is disabled on this system</code></p>
+  <p>Run the command below once, then activate again:</p>
+</blockquote>
+<pre><code>Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code></pre>
+
+<h2>3. Install the Ollama model and check it responds</h2>
+<pre><code>ollama pull llama3.2:3b</code></pre>
+<p>Check that Ollama responds:</p>
+<pre><code>ollama run llama3.2:3b "Say hello in one sentence"</code></pre>
+
+<h2>4. Install the Python packages</h2>
+<blockquote>
+  <p>Install the CPU-only version of PyTorch first, so pip doesn't download a large CUDA build you don't need.</p>
+</blockquote>
+<pre><code>pip install torch --index-url https://download.pytorch.org/whl/cpu</code></pre>
+<p>Then install the remaining packages, either one by one:</p>
+<pre><code>pip install sentence-transformers rank_bm25 chromadb fastapi uvicorn streamlit pandas python-docx requests</code></pre>
+<p><strong>or</strong> from the requirements file:</p>
+<pre><code>pip install -r requirements.txt</code></pre>
+
+<h2>5. Install the embedding model</h2>
+<pre><code>ollama pull nomic-embed-text</code></pre>
+
+<h2>6. Check that everything imports</h2>
+<pre><code>python -c "import sentence_transformers, rank_bm25, chromadb, fastapi, streamlit, pandas, docx; print('All good')"</code></pre>
+<p>You should see <code>All good</code>.</p>
+
+<h2>7. Start the application</h2>
+<p>To start the application (run from the <code>src</code> folder):</p>
+<pre><code>Start-Process -WindowStyle Hidden -FilePath ..\.venv\Scripts\python.exe -ArgumentList '-m','uvicorn','api:app','--reload'</code></pre>
+
+<table>
   <thead>
-    <tr><th>Package</th><th>Used for</th><th>Used in</th></tr>
+    <tr><th>What</th><th>URL</th><th>Expected</th></tr>
   </thead>
   <tbody>
-    <tr><td><code>requests</code></td><td>HTTP calls to Ollama (no-proxy session)</td><td>embedder.py</td></tr>
-    <tr><td><code>numpy</code></td><td>Vectors, cosine similarity, saved embeddings</td><td>embedder.py, ingest.py, retrieval.py, sweep_threshold.py</td></tr>
-    <tr><td><code>rank_bm25</code></td><td>BM25 keyword scoring</td><td>ingest.py, retrieval.py</td></tr>
-    <tr><td><code>chromadb</code></td><td>Persistent vector store</td><td>ingest.py, retrieval.py</td></tr>
-    <tr><td><code>fastapi</code></td><td>Web framework and endpoints</td><td>api.py</td></tr>
-    <tr><td><code>uvicorn</code></td><td>Web server that runs the app</td><td>command line</td></tr>
-    <tr><td><code>markdown</code></td><td>Renders a full document to HTML (tables extension)</td><td>api.py</td></tr>
-    <tr><td><code>pandas</code></td><td>Evaluation tables and CSV output</td><td>evaluate.py, sweep_threshold.py</td></tr>
-    <tr><td>Python standard library</td><td><code>json</code>, <code>re</code>, <code>html</code>, <code>argparse</code>, <code>pathlib</code>, <code>dataclasses</code>, <code>functools</code>, <code>sys</code></td><td>all files</td></tr>
-    <tr><td>Ollama (external program)</td><td>Serves the nomic-embed-text embedding model locally</td><td>embedder.py</td></tr>
+    <tr><td>Application health check</td><td><a href="http://localhost:8000/health">http://localhost:8000/health</a></td><td>If the application is up, it shows <code>"status": "ok"</code></td></tr>
+    <tr><td>Application</td><td><a href="http://localhost:8000/">http://localhost:8000/</a></td><td>The search page opens</td></tr>
   </tbody>
 </table>
 
-<h3>Run</h3>
-<p>From the <code>src</code> folder: <code>python ingest.py</code>, then <code>uvicorn api:app --reload</code> (open http://localhost:8000), <code>python evaluate.py</code>, <code>python sweep_threshold.py</code>.</p>
+<hr>
+
+<h3>Setup checklist</h3>
+<table>
+  <thead>
+    <tr><th>#</th><th>Step</th><th>Done when</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>1</td><td>Requirements installed</td><td><code>python --version</code> shows 3.14.6</td></tr>
+    <tr><td>2</td><td>Virtual environment active</td><td>The prompt shows <code>(.venv)</code></td></tr>
+    <tr><td>3</td><td>Ollama model pulled</td><td>The test prompt returns a one-sentence hello</td></tr>
+    <tr><td>4</td><td>Packages installed</td><td><code>pip</code> finishes without errors</td></tr>
+    <tr><td>5</td><td>Embedding model pulled</td><td><code>ollama pull nomic-embed-text</code> completes</td></tr>
+    <tr><td>6</td><td>Import check</td><td>Prints <code>All good</code></td></tr>
+    <tr><td>7</td><td>Application started</td><td><code>/health</code> shows <code>"status": "ok"</code></td></tr>
+  </tbody>
+</table>

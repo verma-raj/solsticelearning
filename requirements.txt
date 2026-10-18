@@ -7,3 +7,5 @@ streamlit
 pandas
 python-docx
 requests
+
+markdown
