@@ -6,13 +6,14 @@ search() returns one result per document, best document first. It never decides
 from __future__ import annotations
 
 import json
-from functools import lru_cache
+import threading
 
 import numpy as np
 from rank_bm25 import BM25Okapi
 
 import config
 from embedder import embed
+from indexlock import INDEX_LOCK
 from textutils import tokenize
 
 
@@ -24,12 +25,18 @@ class Retriever:
     """Loads the index files once and answers queries."""
 
     def __init__(self) -> None:
-        if not config.CHUNKS_JSON.exists() or not config.EMBEDDINGS_NPY.exists():
-            raise IndexNotBuiltError("The search index has not been built yet. Run: python ingest.py")
-        data = json.loads(config.CHUNKS_JSON.read_text(encoding="utf-8"))
+        # Read the files under the lock so a rebuild that is writing them cannot be caught half-done.
+        with INDEX_LOCK:
+            if not config.CHUNKS_JSON.exists() or not config.EMBEDDINGS_NPY.exists():
+                raise IndexNotBuiltError(
+                    "The search index is not ready yet. Wait a few seconds and try again, or run: python ingest.py"
+                )
+            data = json.loads(config.CHUNKS_JSON.read_text(encoding="utf-8"))
+            self.matrix: np.ndarray = np.load(config.EMBEDDINGS_NPY)
+            self.collection = self._open_chroma()
+        self.fingerprint: str | None = data.get("fingerprint")  # which version of the documents this index is for
         self.documents: dict[str, dict] = data["documents"]
         self.chunks: list[dict] = data["chunks"]
-        self.matrix: np.ndarray = np.load(config.EMBEDDINGS_NPY)
         self._index_of = {c["chunk_id"]: i for i, c in enumerate(self.chunks)}
 
         self.bm25 = BM25Okapi(
@@ -47,7 +54,6 @@ class Retriever:
             for term in terms:
                 self.doc_freq[term] = self.doc_freq.get(term, 0) + 1
 
-        self.collection = self._open_chroma()
 
     @staticmethod
     def _open_chroma():
@@ -140,10 +146,31 @@ class Retriever:
         return results
 
 
-@lru_cache(maxsize=1)
+_retriever: Retriever | None = None
+_retriever_lock = threading.Lock()
+
+
 def get_retriever() -> Retriever:
     """Load the index once and reuse it (loading is the slow part)."""
-    return Retriever()
+    global _retriever
+    if _retriever is None:
+        with _retriever_lock:
+            if _retriever is None:
+                _retriever = Retriever()
+    return _retriever
+
+
+def reload_retriever() -> Retriever:
+    """Load the index files again and switch to them. Searches running meanwhile finish on the old copy."""
+    global _retriever
+    fresh = Retriever()  # built completely before the switch, so there is never a gap
+    _retriever = fresh
+    return fresh
+
+
+def loaded_fingerprint() -> str | None:
+    """The document version the app is currently searching, or None if no index is loaded."""
+    return _retriever.fingerprint if _retriever is not None else None
 
 
 def search(query: str, method: str = "hybrid") -> list[dict]:

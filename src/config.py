@@ -24,6 +24,13 @@ OUTPUT_DIR = ROOT_DIR / "output"               # results.csv, sweep.csv
 RESULTS_CSV = OUTPUT_DIR / "results.csv"
 SWEEP_CSV = OUTPUT_DIR / "sweep.csv"
 
+# ------------------------------------------------------------ auto refresh ----
+# While the app runs it watches kb/docs and rebuilds the index when a document is added,
+# changed or removed, so there is no need to restart or run ingest.py by hand.
+AUTO_REFRESH = True
+AUTO_REFRESH_SECONDS = 5         # how often the documents are checked
+AUTO_REFRESH_RETRY_SECONDS = 30  # wait after a failed rebuild (for example Ollama is down)
+
 # --------------------------------------------------------------- Ollama ----
 OLLAMA_URL = "http://localhost:11434"
 EMBED_MODEL = "nomic-embed-text"

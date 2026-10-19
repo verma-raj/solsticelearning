@@ -4,7 +4,9 @@ Run with:  python ingest.py        (rebuilds everything from scratch)
 """
 from __future__ import annotations
 
+import hashlib
 import json
+import os
 import re
 import sys
 
@@ -13,6 +15,7 @@ from rank_bm25 import BM25Okapi
 
 import config
 from embedder import OllamaError, embed
+from indexlock import INDEX_LOCK
 from textutils import tokenize
 
 _HEADING_RE = re.compile(r"^(#{1,6})\s+(.*\S)\s*$")
@@ -140,31 +143,60 @@ def build_vector_index(chunks: list[dict], vectors: np.ndarray) -> str:
         return f"ChromaDB unavailable ({exc}); using the NumPy fallback only"
 
 
+def docs_fingerprint() -> str:
+    """A short hash of every document's name and content, used to notice when the documents change."""
+    digest = hashlib.sha1()
+    for path in sorted(config.DOCS_DIR.glob("*.md")):
+        digest.update(path.name.encode("utf-8"))
+        digest.update(path.read_bytes())  # content, not file dates: touching a file does not trigger a rebuild
+    return digest.hexdigest()
+
+
+def stored_fingerprint() -> str | None:
+    """The fingerprint saved with the current index, or None if there is no usable index."""
+    try:
+        return json.loads(config.CHUNKS_JSON.read_text(encoding="utf-8")).get("fingerprint")
+    except (OSError, ValueError):
+        return None
+
+
 def build_index() -> dict:
     """Rebuild the whole index and return a summary of what was created."""
+    fingerprint = docs_fingerprint()  # taken first: if a file changes mid-build, the next check rebuilds again
     documents = load_documents()
     chunks = [chunk for doc in documents for chunk in chunk_document(doc)]
 
     config.INDEX_DIR.mkdir(parents=True, exist_ok=True)
 
-    # 1) Embeddings: always saved as a NumPy file; it is the fallback index and is
-    #    also used to read the exact cosine similarity of any chunk.
+    # Embedding is the slow step, so it runs before the lock is taken and searches keep working.
     vectors = embed([c["index_text"] for c in chunks], kind="document")
-    np.save(config.EMBEDDINGS_NPY, vectors)
 
-    # 2) Vector index in ChromaDB.
-    vector_info = build_vector_index(chunks, vectors)
-
-    # 3) BM25 keyword index. It builds in milliseconds, so retrieval.py rebuilds it
-    #    from chunks.json at start-up; we build it here too to prove the data is valid.
+    # BM25 keyword index. It builds in milliseconds, so retrieval.py rebuilds it from
+    # chunks.json at start-up; we build it here too to prove the data is valid.
     BM25Okapi([tokenize(c["index_text"]) for c in chunks])
 
-    # 4) Cache documents + chunks as JSON (the file the web app and evaluator load).
     registry = {d["doc_id"]: {k: d[k] for k in ("title", "topic", "last_updated", "file")} for d in documents}
-    config.CHUNKS_JSON.write_text(
-        json.dumps({"documents": registry, "chunks": chunks}, indent=2, ensure_ascii=False),
-        encoding="utf-8",
-    )
+    payload = json.dumps({"fingerprint": fingerprint, "documents": registry, "chunks": chunks},
+                         indent=2, ensure_ascii=False)
+
+    # Files are written under the lock so a search never loads a half-updated index.
+    with INDEX_LOCK:
+        # 1) Embeddings: always saved as a NumPy file; it is the fallback index and is
+        #    also used to read the exact cosine similarity of any chunk.
+        tmp_vectors = config.EMBEDDINGS_NPY.with_name("embeddings.tmp")
+        with open(tmp_vectors, "wb") as fh:
+            np.save(fh, vectors)
+        os.replace(tmp_vectors, config.EMBEDDINGS_NPY)  # replace in one step, never a partial file
+
+        # 2) Vector index in ChromaDB.
+        vector_info = build_vector_index(chunks, vectors)
+
+        # 3) Cache documents + chunks as JSON (the file the web app and evaluator load).
+        #    Written last: it carries the fingerprint, so it marks the index as complete.
+        tmp_json = config.CHUNKS_JSON.with_name("chunks.tmp")
+        tmp_json.write_text(payload, encoding="utf-8")
+        os.replace(tmp_json, config.CHUNKS_JSON)
+
     words = [len(c["text"].split()) for c in chunks]
     return {
         "documents": len(documents),

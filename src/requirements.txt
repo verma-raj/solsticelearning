@@ -1,9 +1,0 @@
-# Runtime packages for the document finder (all local; nothing is downloaded from Hugging Face)
-requests
-numpy
-pandas
-rank_bm25
-chromadb
-fastapi
-uvicorn
-markdown

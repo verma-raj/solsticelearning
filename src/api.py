@@ -6,18 +6,28 @@ Nothing here generates text: every word shown comes from the stored documents.
 from __future__ import annotations
 
 import html
+from contextlib import asynccontextmanager
 
 import markdown
 from fastapi import FastAPI, Query
 from fastapi.responses import HTMLResponse, JSONResponse
 
+import autorefresh
 import config
 import gate
 import retrieval
 from embedder import OllamaError, check_ollama
 from ingest import parse_front_matter
 
-app = FastAPI(title="Solstice document finder")
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    """Start the background watcher that keeps the index in step with kb/docs."""
+    autorefresh.start()
+    yield
+    autorefresh.stop()
+
+
+app = FastAPI(title="Solstice document finder", lifespan=lifespan)
 
 NOT_FOUND_MESSAGE = "No document available"  # the exact text required when nothing relevant exists
 MAX_QUERY_CHARS = 300                        # protects the embedding call from absurdly long input
@@ -249,6 +259,7 @@ def health() -> JSONResponse:
             "ollama_reachable": ollama["reachable"],
             "embedding_model_installed": ollama["model_installed"],
             "index_built": index_ready,
+            "auto_refresh": autorefresh.status,
             "hints": hints,
         },
     )
